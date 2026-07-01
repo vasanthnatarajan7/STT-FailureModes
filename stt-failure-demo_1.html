@@ -1,0 +1,535 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>I Built the Simulation. Then I Ran Real Audio. Here's What Changed.</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@300;400;500&family=Syne:wght@700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#08080e;--bg2:#0f0f18;--bg3:#14141f;--bg4:#1a1a28;
+  --border:rgba(255,255,255,0.06);--border2:rgba(255,255,255,0.1);
+  --text:#eceaf8;--text2:#9896b4;--text3:#4e4d68;
+  --accent:#7c6eff;--accent2:#a89fff;
+  --green:#1fd6a0;--green-bg:rgba(31,214,160,0.08);--green-border:rgba(31,214,160,0.2);
+  --amber:#f0a030;--amber-bg:rgba(240,160,48,0.1);--amber-border:rgba(240,160,48,0.25);
+  --red:#ff4f4f;--red-bg:rgba(255,79,79,0.08);--red-border:rgba(255,79,79,0.25);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;font-size:15px;line-height:1.6;min-height:100vh}
+body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(rgba(124,110,255,0.018) 1px,transparent 1px),linear-gradient(90deg,rgba(124,110,255,0.018) 1px,transparent 1px);background-size:40px 40px;pointer-events:none;z-index:0}
+
+/* HEADER */
+.hdr{position:fixed;top:0;left:0;right:0;z-index:100;height:52px;display:flex;align-items:center;justify-content:space-between;padding:0 1.75rem;background:rgba(8,8,14,0.92);backdrop-filter:blur(20px);border-bottom:0.5px solid var(--border)}
+.logo{font-family:'Syne',sans-serif;font-weight:800;font-size:14px;letter-spacing:-0.02em}
+.logo span{color:var(--accent2)}
+.hdr-right{display:flex;align-items:center;gap:10px}
+.hdr-badge{font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--text3);background:var(--bg3);border:0.5px solid var(--border);padding:4px 10px;border-radius:3px}
+.hdr-link{font-size:12px;color:var(--accent2);text-decoration:none;background:rgba(124,110,255,0.1);border:0.5px solid rgba(124,110,255,0.25);padding:5px 12px;border-radius:5px;transition:background .2s}
+.hdr-link:hover{background:rgba(124,110,255,0.2)}
+
+/* PAGE */
+.page{position:relative;z-index:1;max-width:980px;margin:0 auto;padding:80px 1.75rem 5rem}
+
+/* HERO */
+.hero{text-align:center;padding:2.5rem 0 3rem}
+.eyebrow{display:inline-flex;align-items:center;gap:8px;font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--text3);background:var(--bg3);border:0.5px solid var(--border);border-radius:3px;padding:5px 12px;margin-bottom:1.75rem}
+.hero h1{font-family:'Syne',sans-serif;font-weight:800;font-size:clamp(1.75rem,4.5vw,3rem);line-height:1.06;letter-spacing:-0.04em;margin-bottom:1rem}
+.hero h1 em{font-style:normal;color:var(--red)}
+.hero h1 .dim{color:var(--text3)}
+.hero-sub{font-size:14px;color:var(--text2);max-width:540px;margin:0 auto 2rem;line-height:1.8}
+.notebook-badge{display:inline-flex;align-items:center;gap:8px;font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--amber);background:var(--amber-bg);border:0.5px solid var(--amber-border);padding:6px 14px;border-radius:3px}
+
+/* SECTION */
+.sec{margin-bottom:3rem}
+.sec-label{font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--text3);letter-spacing:.1em;text-transform:uppercase;margin-bottom:1rem;display:flex;align-items:center;gap:10px}
+.sec-label::after{content:'';flex:1;height:0.5px;background:var(--border)}
+.failure-num{display:inline-flex;align-items:center;justify-content:center;width:24px;height:24px;border-radius:50%;font-family:'IBM Plex Mono',monospace;font-size:10px;font-weight:500;background:var(--red-bg);border:0.5px solid var(--red-border);color:var(--red);flex-shrink:0}
+
+/* FAILURE CARD */
+.failure-card{border:0.5px solid var(--border);border-radius:12px;overflow:hidden;margin-bottom:2rem}
+.fc-header{background:var(--bg2);padding:1rem 1.5rem;border-bottom:0.5px solid var(--border);display:flex;align-items:center;gap:12px}
+.fc-title{font-size:14px;font-weight:500;color:var(--text)}
+.fc-desc{font-size:12px;color:var(--text3);font-family:'IBM Plex Mono',monospace;margin-left:auto}
+.fc-body{padding:1.5rem;background:var(--bg)}
+
+/* BENCHMARK COMPARISON */
+.bench-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:1.25rem}
+.bench-card{border:0.5px solid var(--border);border-radius:10px;padding:1.25rem;background:var(--bg2)}
+.bench-card.good{border-color:var(--green-border);background:var(--green-bg)}
+.bench-card.bad{border-color:var(--red-border);background:var(--red-bg)}
+.bench-label{font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--text3);margin-bottom:8px;letter-spacing:.04em;text-transform:uppercase}
+.bench-card.good .bench-label{color:var(--green)}
+.bench-card.bad .bench-label{color:var(--red)}
+.bench-val{font-family:'Syne',sans-serif;font-weight:800;font-size:2.5rem;line-height:1;margin-bottom:4px}
+.bench-card.good .bench-val{color:var(--green)}
+.bench-card.bad .bench-val{color:var(--red)}
+.bench-sub{font-size:12px;color:var(--text2);line-height:1.6}
+.bench-conditions{display:flex;flex-direction:column;gap:6px;margin-top:10px}
+.bench-condition{font-family:'IBM Plex Mono',monospace;font-size:10px;padding:4px 8px;border-radius:3px;color:var(--text3)}
+.bench-condition.ok{background:var(--green-bg);color:var(--green);border:0.5px solid var(--green-border)}
+.bench-condition.fail{background:var(--red-bg);color:var(--red);border:0.5px solid var(--red-border)}
+.bench-insight{background:var(--bg2);border:0.5px solid var(--border);border-radius:8px;padding:1rem 1.125rem;font-size:13px;color:var(--text2);line-height:1.7}
+.bench-insight strong{color:var(--text);font-weight:500}
+
+/* WORD CONFIDENCE VIZ */
+.conf-demo{margin-bottom:1.25rem}
+.conf-demo-label{font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--text3);margin-bottom:.75rem;display:flex;align-items:center;gap:8px}
+.conf-demo-label span{padding:2px 8px;border-radius:2px;font-size:9px}
+.label-conv{background:var(--green-bg);color:var(--green);border:0.5px solid var(--green-border)}
+.label-entity{background:var(--red-bg);color:var(--red);border:0.5px solid var(--red-border)}
+.words-row{display:flex;gap:4px;flex-wrap:wrap;margin-bottom:10px;padding:1rem;background:var(--bg2);border-radius:8px;border:0.5px solid var(--border)}
+.word-chip{padding:5px 8px;border-radius:4px;font-size:12px;font-family:'IBM Plex Mono',monospace;cursor:default;position:relative;transition:transform .15s}
+.word-chip:hover{transform:translateY(-2px)}
+.word-chip .conf-tooltip{display:none;position:absolute;bottom:calc(100% + 6px);left:50%;transform:translateX(-50%);background:var(--bg4);border:0.5px solid var(--border2);border-radius:4px;padding:4px 8px;font-size:10px;white-space:nowrap;z-index:10;pointer-events:none}
+.word-chip:hover .conf-tooltip{display:block}
+.w-hi{background:rgba(31,214,160,0.15);color:var(--green);border:0.5px solid rgba(31,214,160,0.2)}
+.w-mid{background:rgba(240,160,48,0.12);color:var(--amber);border:0.5px solid rgba(240,160,48,0.2)}
+.w-lo{background:rgba(255,79,79,0.15);color:var(--red);border:0.5px solid rgba(255,79,79,0.25)}
+.conf-legend{display:flex;gap:12px;font-family:'IBM Plex Mono',monospace;font-size:10px;margin-bottom:1.25rem}
+.conf-legend span{display:flex;align-items:center;gap:5px}
+.dot{width:8px;height:8px;border-radius:50%}
+.dot-hi{background:var(--green)}
+.dot-mid{background:var(--amber)}
+.dot-lo{background:var(--red)}
+
+/* ENTITY COLLAPSE CHART */
+.entity-chart{margin-bottom:1.25rem}
+.entity-row{display:flex;align-items:center;gap:10px;margin-bottom:8px}
+.entity-label{font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--text2);min-width:180px}
+.entity-track{flex:1;height:8px;background:var(--bg3);border-radius:4px;overflow:hidden;position:relative}
+.entity-fill{height:100%;border-radius:4px;transition:width 1s cubic-bezier(.4,0,.2,1)}
+.entity-val{font-family:'IBM Plex Mono',monospace;font-size:11px;min-width:44px;text-align:right}
+.entity-threshold{position:absolute;left:72%;top:0;bottom:0;width:1.5px;background:var(--red);z-index:2}
+.threshold-label{font-family:'IBM Plex Mono',monospace;font-size:9px;color:var(--red);margin-top:4px;text-align:right;margin-right:4px}
+
+/* SILENCE TIMEOUT SIM */
+.timeout-sim{background:var(--bg2);border:0.5px solid var(--border);border-radius:10px;overflow:hidden;margin-bottom:1.25rem}
+.ts-header{background:var(--bg3);padding:.75rem 1.125rem;border-bottom:0.5px solid var(--border);display:flex;align-items:center;justify-content:space-between}
+.ts-title{font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--text2)}
+.ts-mode{font-family:'IBM Plex Mono',monospace;font-size:10px;padding:3px 8px;border-radius:2px}
+.ts-mode.legacy{background:var(--red-bg);color:var(--red);border:0.5px solid var(--red-border)}
+.ts-mode.modern{background:var(--green-bg);color:var(--green);border:0.5px solid var(--green-border)}
+.ts-body{padding:1.125rem}
+.audio-wave{height:40px;background:var(--bg);border-radius:6px;margin-bottom:.875rem;position:relative;overflow:hidden;border:0.5px solid var(--border)}
+.wave-bar{position:absolute;bottom:0;width:3px;border-radius:2px 2px 0 0;background:var(--accent2);opacity:0.6;transition:height .1s}
+.cutoff-line{position:absolute;top:0;bottom:0;width:2px;background:var(--red);z-index:5;display:none}
+.cutoff-line.show{display:block}
+.cutoff-tag{position:absolute;top:4px;left:4px;font-family:'IBM Plex Mono',monospace;font-size:9px;color:var(--red);background:var(--red-bg);padding:2px 6px;border-radius:2px;white-space:nowrap}
+.ts-transcript{font-family:'IBM Plex Mono',monospace;font-size:11.5px;line-height:1.8;min-height:60px;color:var(--text2);margin-bottom:.875rem}
+.ts-transcript .cut{color:var(--red);text-decoration:line-through;opacity:.6}
+.ts-transcript .missed{color:var(--text3);font-style:italic}
+.ts-transcript .ok{color:var(--green)}
+.ts-controls{display:flex;gap:8px}
+.mode-btn{font-size:12px;padding:7px 14px;border-radius:6px;border:0.5px solid var(--border2);background:var(--bg3);color:var(--text2);cursor:pointer;font-family:'DM Sans',sans-serif;transition:background .15s}
+.mode-btn:hover{background:var(--bg4)}
+.mode-btn.active-legacy{border-color:var(--red-border);color:var(--red);background:var(--red-bg)}
+.mode-btn.active-modern{border-color:var(--green-border);color:var(--green);background:var(--green-bg)}
+.run-btn{font-size:12px;padding:7px 16px;border-radius:6px;border:none;background:var(--accent);color:#fff;cursor:pointer;font-family:'DM Sans',sans-serif;font-weight:500;transition:opacity .15s;margin-left:auto}
+.run-btn:hover{opacity:.85}
+.run-btn:disabled{opacity:.35;cursor:not-allowed}
+.outcome-row{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:.875rem}
+.outcome{border-radius:6px;padding:.75rem;font-size:12px;line-height:1.6}
+.outcome.bad{background:var(--red-bg);border:0.5px solid var(--red-border);color:var(--red)}
+.outcome.good{background:var(--green-bg);border:0.5px solid var(--green-border);color:var(--green)}
+.outcome strong{display:block;font-weight:500;margin-bottom:2px;font-family:'IBM Plex Mono',monospace;font-size:10px}
+
+/* TAKEAWAYS */
+.takeaway-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:1.5rem}
+.takeaway{background:var(--bg2);border:0.5px solid var(--border);border-radius:10px;padding:1.125rem}
+.takeaway .arrow{font-family:'IBM Plex Mono',monospace;font-size:12px;color:var(--accent2);margin-bottom:6px}
+.takeaway .t-title{font-size:13px;font-weight:500;color:var(--text);margin-bottom:4px}
+.takeaway .t-body{font-size:12px;color:var(--text2);line-height:1.65}
+.takeaway code{font-family:'IBM Plex Mono',monospace;font-size:11px;background:var(--bg3);border:0.5px solid var(--border);color:var(--accent2);padding:1px 5px;border-radius:3px}
+
+/* FOOTER */
+.footer{border-top:0.5px solid var(--border);padding:1.75rem;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:1rem}
+.tags{display:flex;gap:6px;flex-wrap:wrap}
+.tag{font-family:'IBM Plex Mono',monospace;font-size:10px;padding:3px 8px;border-radius:2px;background:var(--bg3);border:0.5px solid var(--border);color:var(--text3)}
+.footer-note{font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--text3)}
+
+@media(max-width:640px){
+  .bench-grid{grid-template-columns:1fr}
+  .takeaway-grid{grid-template-columns:1fr}
+  .outcome-row{grid-template-columns:1fr}
+  .hdr-badge{display:none}
+}
+</style>
+</head>
+<body>
+
+<header class="hdr">
+  <div class="logo">vasanthnatarajan<span>.me</span></div>
+  <div class="hdr-right">
+    <div class="hdr-badge">VOICE AI SERIES · PART 4 · MAY 2026</div>
+    <a class="hdr-link" href="https://www.linkedin.com/in/vasan-natarajan" target="_blank">Follow ↗</a>
+  </div>
+</header>
+
+<div class="page">
+
+  <div class="hero">
+    <div class="eyebrow">Voice AI series · Part 4 — from simulation to real audio</div>
+    <h1>I built the simulation.<br>Then I ran <em>real audio.</em><br><span class="dim">Here's what changed.</span></h1>
+    <p class="hero-sub">Three things the simulation got right in theory — and real API calls broke in practice. STT failure modes you won't find in any benchmark paper.</p>
+    <div class="notebook-badge">⚠ Personal observation — real API calls on real audio, not a production deployment</div>
+  </div>
+
+  <!-- FAILURE 1 -->
+  <div class="sec">
+    <div class="sec-label">Failure 01 of 03</div>
+    <div class="failure-card">
+      <div class="fc-header">
+        <div class="failure-num">1</div>
+        <div class="fc-title">The benchmark is not your audio</div>
+        <div class="fc-desc">WER gap: benchmark vs telephony</div>
+      </div>
+      <div class="fc-body">
+        <div class="bench-grid">
+          <div class="bench-card good">
+            <div class="bench-label">AA-WER v2.0 benchmark</div>
+            <div class="bench-val">2.3%</div>
+            <div class="bench-sub">Word error rate on controlled test set</div>
+            <div class="bench-conditions">
+              <span class="bench-condition ok">✓ 16kHz clean studio audio</span>
+              <span class="bench-condition ok">✓ Native speakers</span>
+              <span class="bench-condition ok">✓ No background noise</span>
+              <span class="bench-condition ok">✓ Optimal microphone</span>
+              <span class="bench-condition ok">✓ Full sentences</span>
+            </div>
+          </div>
+          <div class="bench-card bad">
+            <div class="bench-label">Real contact center audio</div>
+            <div class="bench-val">8–14%</div>
+            <div class="bench-sub">Observed WER range on telephony audio</div>
+            <div class="bench-conditions">
+              <span class="bench-condition fail">✕ 8kHz telephony codec (PCMU)</span>
+              <span class="bench-condition fail">✕ Regional accents</span>
+              <span class="bench-condition fail">✕ Background noise, kids, TV</span>
+              <span class="bench-condition fail">✕ Handset / speakerphone</span>
+              <span class="bench-condition fail">✕ Digit sequences, codes</span>
+            </div>
+          </div>
+        </div>
+        <div class="bench-insight">
+          <strong>The model that scores 2.3% on a benchmark is a different model on your audio.</strong> Not worse by a little. Worse by enough to matter. Run your actual call recordings before you pick your escalation thresholds. Inheriting someone else's benchmarks is how you end up with a threshold that doesn't match your caller population.
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- FAILURE 2 -->
+  <div class="sec">
+    <div class="sec-label">Failure 02 of 03</div>
+    <div class="failure-card">
+      <div class="fc-header">
+        <div class="failure-num">2</div>
+        <div class="fc-title">Entity confidence collapses on structured data</div>
+        <div class="fc-desc">Hover each word to see confidence score</div>
+      </div>
+      <div class="fc-body">
+
+        <div class="conf-legend">
+          <span><span class="dot dot-hi"></span>0.85–1.0 — reliable</span>
+          <span><span class="dot dot-mid"></span>0.72–0.84 — monitor</span>
+          <span><span class="dot dot-lo"></span>&lt;0.72 — escalate</span>
+        </div>
+
+        <div class="conf-demo">
+          <div class="conf-demo-label"><span class="label-conv">conversational speech</span> — high uniform confidence</div>
+          <div class="words-row" id="conv-words"></div>
+        </div>
+
+        <div class="conf-demo">
+          <div class="conf-demo-label"><span class="label-entity">structured entity — 16-digit card number</span> — confidence collapses</div>
+          <div class="words-row" id="entity-words"></div>
+        </div>
+
+        <div class="entity-chart">
+          <div class="entity-row">
+            <span class="entity-label">Conversational avg</span>
+            <div class="entity-track">
+              <div class="entity-fill" style="width:95%;background:var(--green)"></div>
+              <div class="entity-threshold"></div>
+            </div>
+            <span class="entity-val" style="color:var(--green)">0.95</span>
+          </div>
+          <div class="entity-row">
+            <span class="entity-label">Card number avg</span>
+            <div class="entity-track">
+              <div class="entity-fill" style="width:64%;background:var(--red)"></div>
+              <div class="entity-threshold"></div>
+            </div>
+            <span class="entity-val" style="color:var(--red)">0.64</span>
+          </div>
+          <div class="entity-row">
+            <span class="entity-label">Account number avg</span>
+            <div class="entity-track">
+              <div class="entity-fill" style="width:69%;background:var(--amber)"></div>
+              <div class="entity-threshold"></div>
+            </div>
+            <span class="entity-val" style="color:var(--amber)">0.69</span>
+          </div>
+          <div class="entity-row">
+            <span class="entity-label">Date / timestamp</span>
+            <div class="entity-track">
+              <div class="entity-fill" style="width:87%;background:var(--green)"></div>
+              <div class="entity-threshold"></div>
+            </div>
+            <span class="entity-val" style="color:var(--green)">0.87</span>
+          </div>
+          <div class="threshold-label">← escalation threshold: 0.72</div>
+        </div>
+
+        <div class="bench-insight">
+          <strong>Why does confidence collapse on card numbers?</strong> The model is optimised for natural language — words with semantic context, grammatical relationships, predictable sequences. A 16-digit card number has none of these. No semantic meaning. No grammatical anchor. The model has nothing to lean on when a digit sounds ambiguous. Acting on a 0.61 confidence card number is a liability — not a transcription error.
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- FAILURE 3 -->
+  <div class="sec">
+    <div class="sec-label">Failure 03 of 03</div>
+    <div class="failure-card">
+      <div class="fc-header">
+        <div class="failure-num">3</div>
+        <div class="fc-title">Silence timeouts cut callers off mid-sequence</div>
+        <div class="fc-desc">Toggle mode and run the simulation</div>
+      </div>
+      <div class="fc-body">
+        <div class="timeout-sim">
+          <div class="ts-header">
+            <div class="ts-title">Caller reading 16-digit card number</div>
+            <div class="ts-mode legacy" id="mode-badge">legacy — 500ms timeout</div>
+          </div>
+          <div class="ts-body">
+            <div class="audio-wave" id="audio-wave">
+              <div class="cutoff-line" id="cutoff-line"><div class="cutoff-tag">CUTOFF</div></div>
+            </div>
+            <div class="ts-transcript" id="ts-transcript">
+              Select a mode below and click Run to see the difference...
+            </div>
+            <div class="ts-controls">
+              <button class="mode-btn active-legacy" id="btn-legacy" onclick="setMode('legacy')">Legacy — 500ms timeout</button>
+              <button class="mode-btn" id="btn-modern" onclick="setMode('modern')">Modern — punctuation-based</button>
+              <button class="run-btn" id="run-btn" onclick="runSim()">▶ Run</button>
+            </div>
+            <div class="outcome-row" id="outcome-row" style="display:none">
+              <div class="outcome bad" id="outcome-bad">
+                <strong>LEGACY RESULT</strong>
+                Bot responded mid-sequence. Caller had to repeat the full 16 digits. Twice. Call duration +90 seconds. CSAT: 2.1 / 5.
+              </div>
+              <div class="outcome good" id="outcome-good">
+                <strong>MODERN RESULT</strong>
+                Punctuation-based detection waited for the natural pause between groups. Full sequence captured. First time. CSAT: 4.7 / 5.
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="bench-insight">
+          <strong>Silence timeout is a tunable parameter, not a system constant.</strong> In production, increase <code>max_turn_silence</code> dynamically when the caller is reading structured data — card numbers, account IDs, addresses. Drop it back for conversational turns. AssemblyAI's <code>u3-rt-pro</code> lets you adjust this per session. Most teams set it once at deployment and never touch it again.
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- TAKEAWAYS -->
+  <div class="sec">
+    <div class="sec-label">What to do about it</div>
+    <div class="takeaway-grid">
+      <div class="takeaway">
+        <div class="arrow">→</div>
+        <div class="t-title">Run your own audio first</div>
+        <div class="t-body">Before setting any threshold, run a sample of your real call recordings through the API. Your caller population, codec, and use case will produce different confidence distributions than any benchmark.</div>
+      </div>
+      <div class="takeaway">
+        <div class="arrow">→</div>
+        <div class="t-title">Track entity confidence separately</div>
+        <div class="t-body">Overall WER and entity-turn confidence are different signals. A call with 0.95 average confidence can still have a 0.61 card number. Log <code>word.confidence</code> per entity turn, not per transcript.</div>
+      </div>
+      <div class="takeaway">
+        <div class="arrow">→</div>
+        <div class="t-title">Make silence timeout dynamic</div>
+        <div class="t-body">Increase <code>max_turn_silence</code> when your NER layer detects the caller is reading structured data. Drop it back for freeform conversation. One value for all turns is the wrong architecture.</div>
+      </div>
+      <div class="takeaway">
+        <div class="arrow">→</div>
+        <div class="t-title">Escalate before acting on low confidence</div>
+        <div class="t-body">The threshold I use: <code>stt_confidence &lt; 0.72</code> on any entity turn triggers warm transfer. Don't let the AI act on ambiguous payment or account data. That's not caution — it's compliance.</div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<footer class="footer">
+  <div class="tags">
+    <span class="tag">#VoiceAI</span>
+    <span class="tag">#STT</span>
+    <span class="tag">#AssemblyAI</span>
+    <span class="tag">#ContactCenter</span>
+    <span class="tag">#AIEngineering</span>
+    <span class="tag">#AIArchitecture</span>
+  </div>
+  <div class="footer-note">Voice AI series · Part 4 · vasanthnatarajan.me · May 2026</div>
+</footer>
+
+<script>
+// ── Word confidence render ──────────────────────────────────
+const convWords = [
+  {w:"I'd",c:.96},{w:"like",c:.98},{w:"to",c:.97},{w:"dispute",c:.94},
+  {w:"a",c:.99},{w:"charge",c:.95},{w:"on",c:.98},{w:"my",c:.97},
+  {w:"account",c:.93},{w:"from",c:.96},{w:"last",c:.94},{w:"Tuesday",c:.91}
+];
+const entityWords = [
+  {w:"four",c:.88},{w:"four",c:.85},{w:"eight",c:.72},{w:"two",c:.61},
+  {w:"seven",c:.63},{w:"seven",c:.79},{w:"three",c:.65},{w:"one",c:.58},
+  {w:"nine",c:.61},{w:"nine",c:.55},{w:"zero",c:.71},{w:"two",c:.68},
+  {w:"one",c:.82},{w:"four",c:.77},{w:"three",c:.64},{w:"eight",c:.59}
+];
+
+function confClass(c){return c>=0.85?'w-hi':c>=0.72?'w-mid':'w-lo'}
+
+function renderWords(containerId, words){
+  const el = document.getElementById(containerId);
+  words.forEach(({w,c})=>{
+    const chip = document.createElement('span');
+    chip.className = 'word-chip ' + confClass(c);
+    chip.innerHTML = w + '<span class="conf-tooltip">conf: ' + c.toFixed(2) + '</span>';
+    el.appendChild(chip);
+  });
+}
+
+renderWords('conv-words', convWords);
+renderWords('entity-words', entityWords);
+
+// ── Audio wave render ───────────────────────────────────────
+function buildWave(){
+  const wave = document.getElementById('audio-wave');
+  // Card number audio profile: groups of digits with pauses
+  const profile = [
+    ...Array(12).fill(null).map((_,i)=>20+Math.random()*50), // group 1
+    ...Array(4).fill(5),  // short pause
+    ...Array(10).fill(null).map((_,i)=>25+Math.random()*45), // group 2
+    ...Array(8).fill(3),  // longer pause — where legacy cuts
+    ...Array(10).fill(null).map((_,i)=>20+Math.random()*40), // group 3
+    ...Array(3).fill(4),
+    ...Array(8).fill(null).map((_,i)=>18+Math.random()*38),  // group 4
+  ];
+  profile.forEach((h,i)=>{
+    const bar = document.createElement('div');
+    bar.className = 'wave-bar';
+    bar.style.left = (i * (100/profile.length)) + '%';
+    bar.style.height = h + '%';
+    bar.id = 'wb-' + i;
+    wave.appendChild(bar);
+  });
+}
+buildWave();
+
+// ── Silence sim ─────────────────────────────────────────────
+let currentMode = 'legacy';
+let simRunning = false;
+let simTids = [];
+
+function setMode(m){
+  currentMode = m;
+  const badge = document.getElementById('mode-badge');
+  const bl = document.getElementById('btn-legacy');
+  const bm = document.getElementById('btn-modern');
+  if(m==='legacy'){
+    badge.textContent = 'legacy — 500ms timeout';
+    badge.className = 'ts-mode legacy';
+    bl.className = 'mode-btn active-legacy';
+    bm.className = 'mode-btn';
+  } else {
+    badge.textContent = 'modern — punctuation-based';
+    badge.className = 'ts-mode modern';
+    bl.className = 'mode-btn';
+    bm.className = 'mode-btn active-modern';
+  }
+  resetSim();
+}
+
+function resetSim(){
+  simTids.forEach(clearTimeout); simTids=[];
+  simRunning=false;
+  document.getElementById('ts-transcript').innerHTML = 'Select a mode and click Run...';
+  document.getElementById('cutoff-line').classList.remove('show');
+  document.getElementById('outcome-row').style.display='none';
+  document.getElementById('run-btn').disabled=false;
+  document.getElementById('run-btn').textContent='▶ Run';
+  // Reset wave heights
+  document.querySelectorAll('.wave-bar').forEach(b=>b.style.opacity='0.6');
+}
+
+function runSim(){
+  if(simRunning) return;
+  simRunning=true;
+  const btn = document.getElementById('run-btn');
+  btn.disabled=true; btn.textContent='⏳';
+  const box = document.getElementById('ts-transcript');
+  box.innerHTML='';
+  document.getElementById('cutoff-line').classList.remove('show');
+  document.getElementById('outcome-row').style.display='none';
+
+  if(currentMode==='legacy'){
+    // Legacy: cuts mid-sequence at the pause between groups 2 and 3
+    const steps=[
+      {t:0,   txt:'<span class="ok">[CALLER] </span>Four four eight two...'},
+      {t:1200, txt:'<span class="ok">[CALLER] </span>Four four eight two... seven seven three one...'},
+      {t:2400, txt:'<span class="ok">[CALLER] </span>Four four eight two... seven seven three one...<br><span class="missed">// caller pauses between digit groups</span>'},
+      {t:3100, txt:'<span class="ok">[CALLER] </span>Four four eight two... seven seven three one...<br><span class="cut">// TIMEOUT: 500ms silence → turn complete</span>'},
+      {t:3400, txt:'<span class="ok">[CALLER] </span>Four four eight two... seven seven three one...<br><span class="cut">// CUTOFF — remaining 8 digits missed</span><br><span style="color:var(--accent2)">[AI AGENT] </span>Thank you — I have the first eight digits. Can you confirm your card?'},
+      {t:4600, txt:'<span class="ok">[CALLER] </span>What? No, I wasn\'t finished — it\'s four four eight two, seven seven three one, <em>nine nine zero two, one four three eight.</em>'},
+      {t:6000, txt:'<span style="color:var(--accent2)">[AI AGENT] </span>I apologise — can you repeat the full number from the beginning?<br><span class="missed">// caller repeats. again.</span>'},
+    ];
+    steps.forEach(({t,txt})=>{
+      const id=setTimeout(()=>{
+        box.innerHTML=txt;
+        if(t===3100){
+          const cl=document.getElementById('cutoff-line');
+          cl.style.left='51%'; cl.classList.add('show');
+        }
+        if(t===6000){
+          simRunning=false; btn.disabled=false; btn.textContent='▶ Run again';
+          const or=document.getElementById('outcome-row');
+          or.style.display='grid';
+          document.getElementById('outcome-bad').style.display='block';
+          document.getElementById('outcome-good').style.display='none';
+        }
+      },t);
+      simTids.push(id);
+    });
+  } else {
+    // Modern: waits for natural end of sequence
+    const steps=[
+      {t:0,   txt:'<span class="ok">[CALLER] </span>Four four eight two...'},
+      {t:1200, txt:'<span class="ok">[CALLER] </span>Four four eight two... seven seven three one...'},
+      {t:2400, txt:'<span class="ok">[CALLER] </span>Four four eight two... seven seven three one...<br><span class="ok">// punctuation model: sequence incomplete — waiting</span>'},
+      {t:3500, txt:'<span class="ok">[CALLER] </span>Four four eight two... seven seven three one... nine nine zero two...'},
+      {t:4800, txt:'<span class="ok">[CALLER] </span>Four four eight two, seven seven three one, nine nine zero two, one four three eight.'},
+      {t:5600, txt:'<span class="ok">[CALLER] </span>Four four eight two, seven seven three one, nine nine zero two, one four three eight.<br><span class="ok">// turn complete — punctuation detected end of sequence</span>'},
+      {t:6400, txt:'<span class="ok">[CALLER] </span>Four four eight two, seven seven three one, nine nine zero two, one four three eight.<br><span style="color:var(--green)">[AI AGENT] </span>Thank you — I have the full number ending in three eight. Confirming your card now.'},
+    ];
+    steps.forEach(({t,txt})=>{
+      const id=setTimeout(()=>{
+        box.innerHTML=txt;
+        if(t===6400){
+          simRunning=false; btn.disabled=false; btn.textContent='▶ Run again';
+          const or=document.getElementById('outcome-row');
+          or.style.display='grid';
+          document.getElementById('outcome-bad').style.display='none';
+          document.getElementById('outcome-good').style.display='block';
+        }
+      },t);
+      simTids.push(id);
+    });
+  }
+}
+</script>
+</body>
+</html>
